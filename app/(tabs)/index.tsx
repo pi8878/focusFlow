@@ -8,9 +8,11 @@ import InsightCard from "@/components/InsightCard";
 import EmptyState from "@/components/EmptyState";
 import ShieldCard from "@/components/ShieldCard";
 import ActiveShieldsBadge from "@/components/ActiveShieldsBadge";
+import NewShieldModal from "@/components/NewShieldModal";
 
 export default function HomeScreen() {
   const [shields, setShields] = useState<Shield[]>(MOCK_SHIELDS);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const activeCount = shields.filter((s) => s.isActive).length;
 
@@ -18,6 +20,10 @@ export default function HomeScreen() {
     setShields((prev) =>
       prev.map((s) => (s.id === id ? { ...s, isActive: value } : s))
     );
+  };
+
+  const handleCreateShield = (newShield: Shield) => {
+    setShields((prev) => [newShield, ...prev]);
   };
 
   return (
@@ -41,7 +47,10 @@ export default function HomeScreen() {
         {/* Schedules Section */}
         <View className="flex-row items-center justify-between px-4 mt-6 mb-1">
           <Text className="text-xl font-bold text-gray-900">Your Schedules</Text>
-          <TouchableOpacity className="w-9 h-9 bg-white rounded-full items-center justify-center shadow-sm">
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            className="w-9 h-9 bg-white rounded-full items-center justify-center shadow-sm"
+          >
             <Ionicons name="add" size={22} color="#111827" />
           </TouchableOpacity>
         </View>
@@ -61,6 +70,13 @@ export default function HomeScreen() {
 
         <View className="h-8" />
       </ScrollView>
+
+      {/* Modal */}
+      <NewShieldModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onCreateShield={handleCreateShield}
+      />
     </SafeAreaView>
   );
 }
