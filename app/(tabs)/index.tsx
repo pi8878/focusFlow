@@ -14,8 +14,11 @@ import EmptyState from "@/components/EmptyState";
 import ShieldCard from "@/components/ShieldCard";
 import ActiveShieldsBadge from "@/components/ActiveShieldsBadge";
 import NewShieldModal from "@/components/NewShieldModal";
-import { useShields } from "@/hooks/useShields";
+import EmergencyUnlockModal from "@/components/EmergencyUnlockModal";
+// import { useShields } from "@/hooks/useShields";
 import { useState } from "react";
+import { useShields } from "@/context/ShieldsContext";
+
 
 export default function HomeScreen() {
   const {
@@ -28,6 +31,7 @@ export default function HomeScreen() {
   } = useShields();
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [unlockTarget, setUnlockTarget] = useState<Shield | null>(null);
 
   const handleCreateShield = async (newShield: Shield) => {
     await addShield(newShield);
@@ -45,6 +49,24 @@ export default function HomeScreen() {
           onPress: () => deleteShield(id),
         },
       ]
+    );
+  };
+
+  const handleEmergencyUnlock = (shield: Shield) => {
+    setUnlockTarget(shield);
+  };
+
+  const handleUnlocked = (shieldId: string, durationMinutes: number) => {
+    // Temporarily toggle off the shield for the duration
+    // In the full native build this will interact with the enforcement layer
+    toggleShield(shieldId, false);
+
+    // Re-lock after the duration
+    setTimeout(
+      () => {
+        toggleShield(shieldId, true);
+      },
+      durationMinutes * 60 * 1000
     );
   };
 
@@ -96,6 +118,7 @@ export default function HomeScreen() {
               shield={shield}
               onToggle={toggleShield}
               onDelete={handleDelete}
+              onEmergencyUnlock={handleEmergencyUnlock}
             />
           ))
         )}
@@ -103,11 +126,23 @@ export default function HomeScreen() {
         <View className="h-8" />
       </ScrollView>
 
+      {/* New Shield Modal */}
       <NewShieldModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onCreateShield={handleCreateShield}
       />
+
+      {/* Emergency Unlock Modal */}
+      {unlockTarget && (
+        <EmergencyUnlockModal
+          visible={!!unlockTarget}
+          appName={unlockTarget.appName}
+          shieldId={unlockTarget.id}
+          onClose={() => setUnlockTarget(null)}
+          onUnlocked={handleUnlocked}
+        />
+      )}
     </SafeAreaView>
   );
 }

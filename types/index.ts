@@ -11,8 +11,8 @@ export type AppName =
 export interface Shield {
   id: string;
   appName: AppName;
-  startTime: string;   // "09:00"
-  endTime: string;     // "17:00"
+  startTime: string;
+  endTime: string;
   days: DayOfWeek[];
   isActive: boolean;
   createdAt: string;
@@ -20,8 +20,8 @@ export interface Shield {
 
 export interface AppOption {
   name: AppName;
-  color: string;       // background color for the icon
-  iconColor: string;   // icon foreground color
+  color: string;
+  iconColor: string;
 }
 
 export interface Suggestion {
@@ -32,4 +32,39 @@ export interface Suggestion {
 export interface WeeklyProgress {
   day: DayOfWeek;
   minutesSaved: number;
+}
+
+export interface PredictedShield {
+  id: string;
+  appName: AppName;
+  days: DayOfWeek[];
+  startTime: string;
+  endTime: string;
+  reason: string;
+}
+
+export interface UnlockSettings {
+  cooldownSeconds: number;
+  durationMinutes: number;
+}
+
+// New
+export interface EmergencyUnlockState {
+  shieldId: string;
+  appName: AppName;
+  phase: "reason" | "countdown" | "unlocked";
+  reason: string;
+  unlockedUntil?: string; // ISO timestamp
+}
+
+export interface DailyRecord {
+  date: string; // "2026-04-20"
+  wasActive: boolean; // did they have at least one active shield that day
+}
+
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+  lastActiveDate: string | null;
+  history: DailyRecord[]; // last 30 days
 }

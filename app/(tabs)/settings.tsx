@@ -1,27 +1,23 @@
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useState } from "react";
 import InsightCard from "@/components/InsightCard";
 import SettingsRow from "@/components/SettingsRow";
+import HabitPredictorModal from "@/components/HabitPredictorModal";
+import UnlockSettingsModal from "@/components/UnlockSettingsModal";
+// import { useShields } from "@/hooks/useShields";
+import { useShields } from "@/context/ShieldsContext";
 
 export default function SettingsScreen() {
-  const handleHabitPredictor = () => {
-    Alert.alert(
-      "AI Habit Predictor",
-      "This feature will suggest optimal focus windows based on your usage patterns. Coming soon!",
-      [{ text: "OK" }]
-    );
-  };
-
-  const handleEmergencyUnlock = () => {
-    Alert.alert(
-      "Emergency Unlock",
-      "Configure how long you must wait before unlocking a blocked app early. Coming soon!",
-      [{ text: "OK" }]
-    );
-  };
+  const { addShield } = useShields();
+  const [habitModalVisible, setHabitModalVisible] = useState(false);
+  const [unlockModalVisible, setUnlockModalVisible] = useState(false);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100" edges={["top", "left", "right"]}>
+    <SafeAreaView
+      className="flex-1 bg-gray-100"
+      edges={["top", "left", "right"]}
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
 
         {/* Header */}
@@ -43,7 +39,7 @@ export default function SettingsScreen() {
             iconColor="#16a34a"
             title="AI Habit Predictor"
             subtitle="Let AI suggest focus windows"
-            onPress={handleHabitPredictor}
+            onPress={() => setHabitModalVisible(true)}
           />
           <SettingsRow
             icon="time-outline"
@@ -51,13 +47,24 @@ export default function SettingsScreen() {
             iconColor="#374151"
             title="Emergency Unlock Settings"
             subtitle="Configure cooldown and duration"
-            onPress={handleEmergencyUnlock}
+            onPress={() => setUnlockModalVisible(true)}
             isLast={true}
           />
         </View>
 
         <View className="h-8" />
       </ScrollView>
+
+      {/* Modals */}
+      <HabitPredictorModal
+        visible={habitModalVisible}
+        onClose={() => setHabitModalVisible(false)}
+        onAddShield={addShield}
+      />
+      <UnlockSettingsModal
+        visible={unlockModalVisible}
+        onClose={() => setUnlockModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
