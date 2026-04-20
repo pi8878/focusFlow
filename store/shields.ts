@@ -1,0 +1,73 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Shield } from "@/types";
+
+const SHIELDS_KEY = "focusflow_shields";
+
+// Get all shields from storage
+export const getShields = async (): Promise<Shield[]> => {
+  try {
+    const data = await AsyncStorage.getItem(SHIELDS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+// Save the entire shields array to storage
+export const saveShields = async (shields: Shield[]): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(SHIELDS_KEY, JSON.stringify(shields));
+  } catch {
+    // fail silently
+  }
+};
+
+// Add a single new shield
+export const addShield = async (shield: Shield): Promise<Shield[]> => {
+  try {
+    const existing = await getShields();
+    const updated = [shield, ...existing];
+    await saveShields(updated);
+    return updated;
+  } catch {
+    return [];
+  }
+};
+
+// Toggle a shield's active state
+export const toggleShield = async (
+  id: string,
+  value: boolean
+): Promise<Shield[]> => {
+  try {
+    const existing = await getShields();
+    const updated = existing.map((s) =>
+      s.id === id ? { ...s, isActive: value } : s
+    );
+    await saveShields(updated);
+    return updated;
+  } catch {
+    return [];
+  }
+};
+
+// Delete a shield by id
+export const deleteShield = async (id: string): Promise<Shield[]> => {
+  try {
+    const existing = await getShields();
+    const updated = existing.filter((s) => s.id !== id);
+    await saveShields(updated);
+    return updated;
+  } catch {
+    return [];
+  }
+};
+
+// Clear all shields (useful for testing)
+export const clearShields = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(SHIELDS_KEY);
+  } catch {
+    // fail silently
+  }
+};
