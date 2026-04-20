@@ -1,7 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Shield } from "@/types";
+import { Shield, UnlockSettings } from "@/types";
 
 const SHIELDS_KEY = "focusflow_shields";
+const UNLOCK_SETTINGS_KEY = "focusflow_unlock_settings";
+
+export const DEFAULT_UNLOCK_SETTINGS: UnlockSettings = {
+  cooldownSeconds: 30,
+  durationMinutes: 15,
+};
 
 // Get all shields from storage
 export const getShields = async (): Promise<Shield[]> => {
@@ -17,9 +23,7 @@ export const getShields = async (): Promise<Shield[]> => {
 export const saveShields = async (shields: Shield[]): Promise<void> => {
   try {
     await AsyncStorage.setItem(SHIELDS_KEY, JSON.stringify(shields));
-  } catch {
-    // fail silently
-  }
+  } catch {}
 };
 
 // Add a single new shield
@@ -63,11 +67,31 @@ export const deleteShield = async (id: string): Promise<Shield[]> => {
   }
 };
 
-// Clear all shields (useful for testing)
+// Clear all shields
 export const clearShields = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(SHIELDS_KEY);
+  } catch {}
+};
+
+// Get unlock settings
+export const getUnlockSettings = async (): Promise<UnlockSettings> => {
+  try {
+    const data = await AsyncStorage.getItem(UNLOCK_SETTINGS_KEY);
+    return data ? JSON.parse(data) : DEFAULT_UNLOCK_SETTINGS;
   } catch {
-    // fail silently
+    return DEFAULT_UNLOCK_SETTINGS;
   }
+};
+
+// Save unlock settings
+export const saveUnlockSettings = async (
+  settings: UnlockSettings
+): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(
+      UNLOCK_SETTINGS_KEY,
+      JSON.stringify(settings)
+    );
+  } catch {}
 };

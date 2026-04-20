@@ -7,6 +7,7 @@ interface ShieldCardProps {
   shield: Shield;
   onToggle: (id: string, value: boolean) => void;
   onDelete: (id: string) => void;
+  onEmergencyUnlock: (shield: Shield) => void;
 }
 
 const ALL_DAYS: DayOfWeek[] = [
@@ -17,6 +18,7 @@ export default function ShieldCard({
   shield,
   onToggle,
   onDelete,
+  onEmergencyUnlock,
 }: ShieldCardProps) {
   const appOption = APP_OPTIONS.find((a) => a.name === shield.appName);
 
@@ -76,10 +78,22 @@ export default function ShieldCard({
         })}
       </View>
 
-      {/* Long press hint */}
-      <Text className="text-gray-300 text-xs mt-2">
-        Hold to delete
-      </Text>
+      {/* Bottom row — hints + emergency unlock */}
+      <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-gray-50">
+        <Text className="text-gray-300 text-xs">Hold to delete</Text>
+
+        {shield.isActive && (
+          <TouchableOpacity
+            onPress={() => onEmergencyUnlock(shield)}
+            className="flex-row items-center gap-1 bg-red-50 px-3 py-1.5 rounded-full"
+          >
+            <Ionicons name="lock-open-outline" size={12} color="#ef4444" />
+            <Text className="text-red-500 text-xs font-medium ml-1">
+              Emergency Unlock
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }

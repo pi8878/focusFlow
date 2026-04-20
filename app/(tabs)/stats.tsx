@@ -5,35 +5,33 @@ import { MOCK_SUGGESTIONS, MOCK_WEEKLY_PROGRESS } from "@/constants";
 import { Suggestion } from "@/types";
 import { getFocusSuggestions } from "@/services/ai";
 import { useShields } from "@/hooks/useShields";
+import { useStreak } from "@/hooks/useStreak";
 import InsightCard from "@/components/InsightCard";
 import SuggestionCard from "@/components/SuggestionCard";
 import WeeklyProgressBar from "@/components/WeeklyProgressBar";
+import StreakCard from "@/components/StreakCard";
 
 export default function StatsScreen() {
   const { shields } = useShields();
+  const hasActiveShields = shields.some((s) => s.isActive);
+  const { streakData, weekGrid, loading: streakLoading } = useStreak(hasActiveShields);
+
   const [suggestions, setSuggestions] = useState<Suggestion[]>(MOCK_SUGGESTIONS);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     const loadSuggestions = async () => {
-      // Only call AI if user has shields set up
       if (shields.length === 0) return;
-
       setLoadingSuggestions(true);
-
       const appNames = shields.map((s) => s.appName);
       const results = await getFocusSuggestions(appNames);
-
       if (results.length > 0) {
-        // Convert string array to Suggestion objects
         const formatted: Suggestion[] = results.map((text, index) => ({
           id: index.toString(),
           text,
         }));
         setSuggestions(formatted);
       }
-      // If AI returns nothing, mock suggestions stay as fallback
-
       setLoadingSuggestions(false);
     };
 
@@ -57,6 +55,13 @@ export default function StatsScreen() {
 
         {/* AI Insight Card */}
         <InsightCard />
+
+        {/* Streak Card */}
+        <StreakCard
+          streakData={streakData}
+          weekGrid={weekGrid}
+          loading={streakLoading}
+        />
 
         {/* AI Suggestions */}
         <Text className="text-xl font-bold text-gray-900 px-4 mt-6 mb-3">

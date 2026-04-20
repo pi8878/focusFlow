@@ -1,4 +1,5 @@
 import { FOCUS_QUOTES } from "@/constants";
+import { Shield, PredictedShield } from "@/types";
 
 const CLAUDE_API_KEY = process.env.EXPO_PUBLIC_CLAUDE_API_KEY;
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
@@ -108,5 +109,105 @@ export const getFocusSuggestions = async (
     return parsed;
   } catch {
     return [];
+  }
+};
+
+export const getPredictedShields = async (
+  existingShields: Shield[]
+): Promise<PredictedShield[]> => {
+  // Mock predictions based on existing shields for when no API key/credits
+  const mockPredictions: PredictedShield[] = [
+    {
+      id: "p1",
+      appName: "Instagram",
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      startTime: "21:00",
+      endTime: "23:59",
+      reason:
+        "Prevents the identified 3-hour usage streak after 9 PM to protect sleep quality.",
+    },
+    {
+      id: "p2",
+      appName: "TikTok",
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      startTime: "10:00",
+      endTime: "12:00",
+      reason:
+        "Eliminates distractions during the 10am-12pm work window where usage is most frequent.",
+    },
+    {
+      id: "p3",
+      appName: "YouTube",
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      startTime: "13:00",
+      endTime: "14:00",
+      reason:
+        "Blocks the post-lunch scroll habit that typically extends beyond 45 minutes.",
+    },
+  ];
+
+  if (!CLAUDE_API_KEY) {
+    return mockPredictions;
+  }
+
+  try {
+    const shieldSummary =
+      existingShields.length > 0
+        ? existingShields
+            .map(
+              (s) =>
+                `${s.appName} blocked ${s.days.join(", ")} from ${s.startTime} to ${s.endTime}`
+            )
+            .join("; ")
+        : "No shields set yet";
+
+    const response = await fetch(CLAUDE_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": CLAUDE_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 800,
+        messages: [
+          {
+            role: "user",
+            content: `You are an AI digital wellness coach. Based on a user's current app blocking schedule: ${shieldSummary}, suggest 3 additional shield schedules to improve their focus and digital wellness.
+            
+            Respond ONLY with a JSON array in this exact format:
+            [
+              {
+                "id": "p1",
+                "appName": "Instagram",
+                "days": ["Mon", "Tue", "Wed"],
+                "startTime": "21:00",
+                "endTime": "23:59",
+                "reason": "Short explanation of why this helps"
+              }
+            ]
+            
+            AppName must be one of: Instagram, TikTok, X (Twitter), YouTube, Facebook, Reddit.
+            Days must be from: Mon, Tue, Wed, Thu, Fri, Sat, Sun.
+            Times must be in 24hr format HH:MM.
+            Only respond with the JSON array, nothing else.`,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) return mockPredictions;
+
+    const data = await response.json();
+    const content = data.content?.[0]?.text;
+    if (!content) return mockPredictions;
+
+    const parsed = JSON.parse(content);
+    if (!Array.isArray(parsed)) return mockPredictions;
+
+    return parsed;
+  } catch {
+    return mockPredictions;
   }
 };
