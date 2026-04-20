@@ -3,6 +3,8 @@ import { Shield, UnlockSettings } from "@/types";
 
 const SHIELDS_KEY = "focusflow_shields";
 const UNLOCK_SETTINGS_KEY = "focusflow_unlock_settings";
+const ONBOARDING_KEY = "focusflow_onboarding_complete";
+
 
 export const DEFAULT_UNLOCK_SETTINGS: UnlockSettings = {
   cooldownSeconds: 30,
@@ -93,5 +95,27 @@ export const saveUnlockSettings = async (
       UNLOCK_SETTINGS_KEY,
       JSON.stringify(settings)
     );
+  } catch {}
+};
+
+
+export const getOnboardingComplete = async (): Promise<boolean> => {
+  try {
+    const data = await AsyncStorage.getItem(ONBOARDING_KEY);
+    return data === "true";
+  } catch {
+    return false;
+  }
+};
+
+export const setOnboardingComplete = async (): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(ONBOARDING_KEY, "true");
+  } catch {}
+};
+
+export const resetOnboarding = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem("focusflow_onboarding_complete");
   } catch {}
 };

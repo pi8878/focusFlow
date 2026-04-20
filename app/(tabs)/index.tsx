@@ -15,8 +15,10 @@ import ShieldCard from "@/components/ShieldCard";
 import ActiveShieldsBadge from "@/components/ActiveShieldsBadge";
 import NewShieldModal from "@/components/NewShieldModal";
 import EmergencyUnlockModal from "@/components/EmergencyUnlockModal";
-import { useShields } from "@/hooks/useShields";
+// import { useShields } from "@/hooks/useShields";
 import { useState } from "react";
+import { useShields } from "@/context/ShieldsContext";
+
 
 export default function HomeScreen() {
   const {

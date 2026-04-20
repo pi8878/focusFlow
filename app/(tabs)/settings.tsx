@@ -3,10 +3,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import InsightCard from "@/components/InsightCard";
 import SettingsRow from "@/components/SettingsRow";
-import HabitPredictorModal from "@/components/HabitPredictorModal.";
+import HabitPredictorModal from "@/components/HabitPredictorModal";
 import UnlockSettingsModal from "@/components/UnlockSettingsModal";
+// import { useShields } from "@/hooks/useShields";
+import { useShields } from "@/context/ShieldsContext";
 
 export default function SettingsScreen() {
+  const { addShield } = useShields();
   const [habitModalVisible, setHabitModalVisible] = useState(false);
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
 
@@ -56,6 +59,7 @@ export default function SettingsScreen() {
       <HabitPredictorModal
         visible={habitModalVisible}
         onClose={() => setHabitModalVisible(false)}
+        onAddShield={addShield}
       />
       <UnlockSettingsModal
         visible={unlockModalVisible}

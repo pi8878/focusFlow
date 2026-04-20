@@ -6,6 +6,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { BlurView } from "expo-blur";
 import Slider from "@react-native-community/slider";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,9 +36,7 @@ export default function UnlockSettingsModal({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (visible) {
-      loadSettings();
-    }
+    if (visible) loadSettings();
   }, [visible]);
 
   const loadSettings = async () => {
@@ -67,7 +66,11 @@ export default function UnlockSettingsModal({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/50 items-center justify-center px-5">
+      <BlurView
+        intensity={60}
+        tint="dark"
+        style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
+      >
         <View className="bg-white rounded-3xl w-full px-6 pt-6 pb-6">
 
           {/* Header */}
@@ -149,7 +152,6 @@ export default function UnlockSettingsModal({
                 )}
               </TouchableOpacity>
 
-              {/* Cancel */}
               <TouchableOpacity onPress={onClose} className="py-2 items-center">
                 <Text className="text-gray-400 text-sm font-medium">
                   Cancel
@@ -158,7 +160,7 @@ export default function UnlockSettingsModal({
             </>
           )}
         </View>
-      </View>
+      </BlurView>
     </Modal>
   );
 }
