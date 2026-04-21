@@ -59,7 +59,7 @@ export default function HomeScreen() {
   const handleUnlocked = (shieldId: string, durationMinutes: number) => {
     // Temporarily toggle off the shield for the duration
     // In the full native build this will interact with the enforcement layer
-    toggleShield(shieldId, false);
+    // toggleShield(shieldId, false);
 
     // Re-lock after the duration
     setTimeout(

@@ -6,6 +6,8 @@ export type AppName =
   | "X (Twitter)"
   | "YouTube"
   | "Facebook"
+  | "Snapchat"
+  | "Messenger"
   | "Reddit";
 
 export interface Shield {

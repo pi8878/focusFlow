@@ -81,29 +81,35 @@ export default function EmergencyUnlockModal({
       });
     }, 1000);
   };
+    const startUnlocked = () => {
+        setPhase("unlocked");
+        const totalSeconds = settings.durationMinutes * 60;
+        setUnlockCountdown(totalSeconds);
 
-  const startUnlocked = () => {
-    setPhase("unlocked");
-    const totalSeconds = settings.durationMinutes * 60;
-    setUnlockCountdown(totalSeconds);
-    timerRef.current = setInterval(() => {
-      setUnlockCountdown((prev) => {
-        if (prev <= 1) {
-          clearTimer();
-          onUnlocked(shieldId, settings.durationMinutes);
-          onClose();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
+        timerRef.current = setInterval(() => {
+            setUnlockCountdown((prev) => {
+            if (prev <= 1) {
+                clearTimer();
+                // Push state updates to next tick to avoid
+                // updating parent while modal is still rendering
+                setTimeout(() => {
+                onUnlocked(shieldId, settings.durationMinutes);
+                onClose();
+                }, 0);
+                return 0;
+            }
+            return prev - 1;
+            });
+        }, 1000);
+    };
 
   const handleClose = () => {
     clearTimer();
     setPhase("reason");
     setReason("");
-    onClose();
+    setTimeout(() => {
+      onClose();
+    }, 0);
   };
 
   const formatTime = (seconds: number) => {
