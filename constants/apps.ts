@@ -27,8 +27,18 @@ export const APP_OPTIONS: AppOption[] = [
     iconColor: "#ffffff",
   },
   {
+    name: "Messenger",
+    color: "#9F33FF",
+    iconColor: "#ffffff",
+  },
+  {
     name: "Reddit",
     color: "#FF4500",
     iconColor: "#ffffff",
+  },
+  {
+    name: "Snapchat",
+    color: "#FFFC00",
+    iconColor: "#EEEEEE",
   },
 ];
