@@ -1,9 +1,10 @@
-import { View, Text, Switch, TouchableOpacity } from "react-native";
+import { View, Text, Switch, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Shield, DayOfWeek } from "@/types";
 import { APP_OPTIONS } from "@/constants";
 import { isShieldCooling, getCoolingSecondsLeft } from "@/store/shields";
 import { useEffect, useState } from "react";
+import { useEmergencyUnlock } from "@/context/EmergencyUnlockContext";
 
 interface ShieldCardProps {
   shield: Shield;
@@ -33,30 +34,70 @@ export default function ShieldCard({
 }: ShieldCardProps) {
   const appOption = APP_OPTIONS.find((a) => a.name === shield.appName);
   const cooling = isShieldCooling(shield);
+  const { session, endSession, expand } = useEmergencyUnlock();
 
-  // Live countdown for cooling period
   const [coolingSeconds, setCoolingSeconds] = useState(
     getCoolingSecondsLeft(shield)
   );
 
   useEffect(() => {
     if (!cooling) return;
-
     const interval = setInterval(() => {
       const left = getCoolingSecondsLeft(shield);
       setCoolingSeconds(left);
       if (left <= 0) clearInterval(interval);
     }, 1000);
-
     return () => clearInterval(interval);
   }, [cooling, shield.coolingUntil]);
+
+  const handleEmergencyUnlockPress = () => {
+    // A session is already active
+    if (session) {
+      // If this is the same shield that's already unlocked — just expand
+      if (session.shieldId === shield.id) {
+        expand();
+        return;
+      }
+
+      // Different shield — prompt user
+      Alert.alert(
+        "Unlock Already Active",
+        `${session.appName} is currently unlocked. You can only have one emergency unlock at a time.\n\nWould you like to end the current session and unlock ${shield.appName} instead?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "End Current & Unlock",
+            style: "destructive",
+            onPress: () => {
+              endSession();
+              // Small delay to let the previous session clean up
+              setTimeout(() => {
+                onEmergencyUnlock(shield);
+              }, 300);
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    // No active session — proceed normally
+    onEmergencyUnlock(shield);
+  };
+
+  // Check if this shield is the currently active unlock session
+  const isThisShieldUnlocked = session?.shieldId === shield.id;
 
   return (
     <TouchableOpacity
       onLongPress={() => onDelete(shield.id)}
       activeOpacity={0.95}
       className={`mx-4 mt-3 rounded-2xl p-4 shadow-sm ${
-        cooling ? "bg-orange-50 border border-orange-200" : "bg-white"
+        cooling
+          ? "bg-orange-50 border border-orange-200"
+          : isThisShieldUnlocked
+          ? "bg-green-50 border border-green-200"
+          : "bg-white"
       }`}
     >
       {/* Cooling banner */}
@@ -69,6 +110,20 @@ export default function ShieldCard({
         </View>
       )}
 
+      {/* Active unlock banner */}
+      {isThisShieldUnlocked && (
+        <TouchableOpacity
+          onPress={expand}
+          className="flex-row items-center gap-2 mb-3 bg-green-100 rounded-xl px-3 py-2"
+        >
+          <Ionicons name="lock-open-outline" size={14} color="#16a34a" />
+          <Text className="text-green-700 text-xs font-semibold flex-1">
+            Currently unlocked — tap to view timer
+          </Text>
+          <Ionicons name="chevron-forward" size={12} color="#16a34a" />
+        </TouchableOpacity>
+      )}
+
       {/* Top row */}
       <View className="flex-row items-center justify-between">
         <View
@@ -76,13 +131,21 @@ export default function ShieldCard({
           style={{
             backgroundColor: cooling
               ? "#fdba74"
+              : isThisShieldUnlocked
+              ? "#86efac"
               : appOption?.color ?? "#6b7280",
           }}
         >
           <Ionicons
-            name={cooling ? "hourglass" : "lock-closed"}
+            name={
+              cooling
+                ? "hourglass"
+                : isThisShieldUnlocked
+                ? "lock-open"
+                : "lock-closed"
+            }
             size={20}
-            color={cooling ? "#ffffff" : appOption?.iconColor ?? "#fff"}
+            color={cooling || isThisShieldUnlocked ? "#ffffff" : appOption?.iconColor ?? "#fff"}
           />
         </View>
 
@@ -98,11 +161,13 @@ export default function ShieldCard({
           </View>
         </View>
 
-        {/* Toggle — disabled during cooling */}
         <Switch
           value={shield.isActive}
           onValueChange={(value) => onToggle(shield.id, value)}
-          trackColor={{ false: "#e5e7eb", true: cooling ? "#fb923c" : "#22c55e" }}
+          trackColor={{
+            false: "#e5e7eb",
+            true: cooling ? "#fb923c" : "#22c55e",
+          }}
           thumbColor="#ffffff"
           disabled={cooling}
         />
@@ -133,12 +198,22 @@ export default function ShieldCard({
 
         {shield.isActive && !cooling && (
           <TouchableOpacity
-            onPress={() => onEmergencyUnlock(shield)}
-            className="flex-row items-center gap-1 bg-red-50 px-3 py-1.5 rounded-full"
+            onPress={handleEmergencyUnlockPress}
+            className={`flex-row items-center gap-1 px-3 py-1.5 rounded-full ${
+              isThisShieldUnlocked ? "bg-green-100" : "bg-red-50"
+            }`}
           >
-            <Ionicons name="lock-open-outline" size={12} color="#ef4444" />
-            <Text className="text-red-500 text-xs font-medium ml-1">
-              Emergency Unlock
+            <Ionicons
+              name={isThisShieldUnlocked ? "timer-outline" : "lock-open-outline"}
+              size={12}
+              color={isThisShieldUnlocked ? "#16a34a" : "#ef4444"}
+            />
+            <Text
+              className={`text-xs font-medium ml-1 ${
+                isThisShieldUnlocked ? "text-green-600" : "text-red-500"
+              }`}
+            >
+              {isThisShieldUnlocked ? "View Timer" : "Emergency Unlock"}
             </Text>
           </TouchableOpacity>
         )}

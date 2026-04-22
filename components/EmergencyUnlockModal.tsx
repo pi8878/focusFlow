@@ -5,13 +5,13 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  ActivityIndicator,
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { useState, useEffect, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { AppName, UnlockSettings } from "@/types";
 import { getUnlockSettings, DEFAULT_UNLOCK_SETTINGS } from "@/store/shields";
+import { useEmergencyUnlock } from "@/context/EmergencyUnlockContext";
 
 interface EmergencyUnlockModalProps {
   visible: boolean;
@@ -21,7 +21,7 @@ interface EmergencyUnlockModalProps {
   onUnlocked: (shieldId: string, durationMinutes: number) => void;
 }
 
-type Phase = "reason" | "countdown" | "unlocked";
+type Phase = "reason" | "countdown";
 
 export default function EmergencyUnlockModal({
   visible,
@@ -30,13 +30,14 @@ export default function EmergencyUnlockModal({
   onClose,
   onUnlocked,
 }: EmergencyUnlockModalProps) {
+  const { startSession } = useEmergencyUnlock();
+
   const [phase, setPhase] = useState<Phase>("reason");
   const [reason, setReason] = useState("");
   const [settings, setSettings] = useState<UnlockSettings>(
     DEFAULT_UNLOCK_SETTINGS
   );
   const [countdown, setCountdown] = useState(0);
-  const [unlockCountdown, setUnlockCountdown] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -70,52 +71,34 @@ export default function EmergencyUnlockModal({
     }
     setPhase("countdown");
     setCountdown(settings.cooldownSeconds);
+
     timerRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearTimer();
-          startUnlocked();
+          // Cooldown done — hand off to global session (floating bubble)
+          setTimeout(() => {
+            onUnlocked(shieldId, settings.durationMinutes);
+            startSession(
+              shieldId,
+              appName,
+              settings.durationMinutes,
+              reason
+            );
+            onClose();
+          }, 0);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
   };
-    const startUnlocked = () => {
-        setPhase("unlocked");
-        const totalSeconds = settings.durationMinutes * 60;
-        setUnlockCountdown(totalSeconds);
-
-        timerRef.current = setInterval(() => {
-            setUnlockCountdown((prev) => {
-            if (prev <= 1) {
-                clearTimer();
-                // Push state updates to next tick to avoid
-                // updating parent while modal is still rendering
-                setTimeout(() => {
-                onUnlocked(shieldId, settings.durationMinutes);
-                onClose();
-                }, 0);
-                return 0;
-            }
-            return prev - 1;
-            });
-        }, 1000);
-    };
 
   const handleClose = () => {
     clearTimer();
     setPhase("reason");
     setReason("");
-    setTimeout(() => {
-      onClose();
-    }, 0);
-  };
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    setTimeout(() => onClose(), 0);
   };
 
   return (
@@ -128,7 +111,12 @@ export default function EmergencyUnlockModal({
       <BlurView
         intensity={60}
         tint="dark"
-        style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingHorizontal: 20,
+        }}
       >
         <View className="bg-white rounded-3xl w-full px-6 pt-6 pb-8">
 
@@ -200,17 +188,20 @@ export default function EmergencyUnlockModal({
               <Text className="text-gray-500 text-sm mb-8 text-center">
                 Take a breath. Think about whether you really need this.
               </Text>
+
               <View className="w-36 h-36 rounded-full border-4 border-red-500 items-center justify-center mb-8">
                 <Text className="text-5xl font-bold text-red-500">
                   {countdown}
                 </Text>
                 <Text className="text-gray-400 text-xs mt-1">seconds</Text>
               </View>
+
               <Text className="text-gray-400 text-sm text-center mb-8">
                 Unlocking{" "}
                 <Text className="font-semibold text-gray-700">{appName}</Text>{" "}
                 for {settings.durationMinutes} minutes
               </Text>
+
               <TouchableOpacity
                 onPress={handleClose}
                 className="py-2 items-center"
@@ -219,30 +210,6 @@ export default function EmergencyUnlockModal({
                   Cancel — I changed my mind
                 </Text>
               </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Phase 3: Unlocked */}
-          {phase === "unlocked" && (
-            <View className="items-center py-4">
-              <View className="w-20 h-20 rounded-full bg-green-100 items-center justify-center mb-4">
-                <Ionicons name="lock-open" size={36} color="#16a34a" />
-              </View>
-              <Text className="text-xl font-bold text-gray-900 mb-1">
-                {appName} Unlocked
-              </Text>
-              <Text className="text-gray-400 text-sm mb-8 text-center">
-                Access granted. It re-locks automatically when the timer ends.
-              </Text>
-              <View className="w-36 h-36 rounded-full border-4 border-green-500 items-center justify-center mb-6">
-                <Text className="text-4xl font-bold text-green-500">
-                  {formatTime(unlockCountdown)}
-                </Text>
-                <Text className="text-gray-400 text-xs mt-1">remaining</Text>
-              </View>
-              <Text className="text-gray-400 text-xs text-center italic px-4">
-                "{reason}"
-              </Text>
             </View>
           )}
         </View>

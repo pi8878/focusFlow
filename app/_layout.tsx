@@ -34,19 +34,28 @@
 
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ShieldsProvider } from "@/context/ShieldsContext";
+import { EmergencyUnlockProvider } from "@/context/EmergencyUnlockContext";
+import FloatingUnlockBubble from "@/components/FloatingUnlockBubble";
 import "../global.css";
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <ShieldsProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="onboarding" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(auth)" />
-        </Stack>
-      </ShieldsProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ShieldsProvider>
+          <EmergencyUnlockProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="onboarding" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="(auth)" />
+            </Stack>
+            {/* Global floating bubble — renders above everything */}
+            <FloatingUnlockBubble />
+          </EmergencyUnlockProvider>
+        </ShieldsProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
