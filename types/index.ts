@@ -6,9 +6,9 @@ export type AppName =
   | "X (Twitter)"
   | "YouTube"
   | "Facebook"
+  | "Reddit"
   | "Snapchat"
-  | "Messenger"
-  | "Reddit";
+  | "Messenger";
 
 export interface Shield {
   id: string;
@@ -18,6 +18,7 @@ export interface Shield {
   days: DayOfWeek[];
   isActive: boolean;
   createdAt: string;
+  coolingUntil?: string;
 }
 
 export interface AppOption {
@@ -50,23 +51,22 @@ export interface UnlockSettings {
   durationMinutes: number;
 }
 
-// New
 export interface EmergencyUnlockState {
   shieldId: string;
   appName: AppName;
   phase: "reason" | "countdown" | "unlocked";
   reason: string;
-  unlockedUntil?: string; // ISO timestamp
+  unlockedUntil?: string;
 }
 
 export interface DailyRecord {
-  date: string; // "2026-04-20"
-  wasActive: boolean; // did they have at least one active shield that day
+  date: string;
+  wasActive: boolean;
 }
 
 export interface StreakData {
   currentStreak: number;
   longestStreak: number;
   lastActiveDate: string | null;
-  history: DailyRecord[]; // last 30 days
+  history: DailyRecord[];
 }
