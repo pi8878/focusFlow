@@ -119,3 +119,57 @@ export const resetOnboarding = async (): Promise<void> => {
     await AsyncStorage.removeItem("focusflow_onboarding_complete");
   } catch {}
 };
+
+const COOLING_HOURS = 2;
+
+// Check if a shield is currently in cooling period
+export const isShieldCooling = (shield: Shield): boolean => {
+  if (!shield.coolingUntil) return false;
+  return new Date(shield.coolingUntil) > new Date();
+};
+
+// Get remaining cooling time in seconds
+export const getCoolingSecondsLeft = (shield: Shield): number => {
+  if (!shield.coolingUntil) return 0;
+  const diff = new Date(shield.coolingUntil).getTime() - Date.now();
+  return Math.max(0, Math.floor(diff / 1000));
+};
+
+// Start cooling period on a shield
+export const startCooling = async (id: string): Promise<Shield[]> => {
+  try {
+    const existing = await getShields();
+    const coolingUntil = new Date(
+      Date.now() + COOLING_HOURS * 60 * 60 * 1000
+    ).toISOString();
+    const updated = existing.map((s) =>
+      s.id === id
+        ? { ...s, isActive: true, coolingUntil } // force active during cooling
+        : s
+    );
+    await saveShields(updated);
+    return updated;
+  } catch {
+    return [];
+  }
+};
+
+// Remove expired cooling periods — call this on app load
+export const clearExpiredCooling = async (): Promise<Shield[]> => {
+  try {
+    const existing = await getShields();
+    const now = new Date();
+    const updated = existing.map((s) => {
+      if (s.coolingUntil && new Date(s.coolingUntil) <= now) {
+        // Cooling expired — remove coolingUntil and deactivate
+        const { coolingUntil, ...rest } = s;
+        return { ...rest, isActive: false };
+      }
+      return s;
+    });
+    await saveShields(updated);
+    return updated;
+  } catch {
+    return [];
+  }
+};
