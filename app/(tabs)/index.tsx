@@ -3,22 +3,19 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Shield } from "@/types";
 import InsightCard from "@/components/InsightCard";
 import EmptyState from "@/components/EmptyState";
-import ShieldCard from "@/components/ShieldCard";
+import AnimatedShieldCard from "@/components/AnimatedShieldCard";
+import SkeletonLoader from "@/components/SkeletonCard";
 import ActiveShieldsBadge from "@/components/ActiveShieldsBadge";
 import NewShieldModal from "@/components/NewShieldModal";
 import EmergencyUnlockModal from "@/components/EmergencyUnlockModal";
-// import { useShields } from "@/hooks/useShields";
-import { useState } from "react";
 import { useShields } from "@/context/ShieldsContext";
-
+import { useState } from "react";
 
 export default function HomeScreen() {
   const {
@@ -38,37 +35,14 @@ export default function HomeScreen() {
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert(
-      "Delete Shield",
-      "Are you sure you want to delete this shield?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => deleteShield(id),
-        },
-      ]
-    );
+    deleteShield(id);
   };
 
   const handleEmergencyUnlock = (shield: Shield) => {
     setUnlockTarget(shield);
   };
 
-  const handleUnlocked = (shieldId: string, durationMinutes: number) => {
-    // Temporarily toggle off the shield for the duration
-    // In the full native build this will interact with the enforcement layer
-    // toggleShield(shieldId, false);
-
-    // Re-lock after the duration
-    setTimeout(
-      () => {
-        toggleShield(shieldId, true);
-      },
-      durationMinutes * 60 * 1000
-    );
-  };
+  const handleUnlocked = (shieldId: string, durationMinutes: number) => {};
 
   return (
     <SafeAreaView
@@ -80,7 +54,9 @@ export default function HomeScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
           <View>
-            <Text className="text-3xl font-bold text-gray-900">FocusFlow</Text>
+            <Text className="text-3xl font-bold text-gray-900">
+              FocusFlow
+            </Text>
             <Text className="text-sm text-gray-400 mt-0.5">
               Master your digital environment.
             </Text>
@@ -104,18 +80,17 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Loading state */}
+        {/* Loading skeleton */}
         {loading ? (
-          <View className="mt-16 items-center">
-            <ActivityIndicator size="large" color="#22c55e" />
-          </View>
+          <SkeletonLoader />
         ) : shields.length === 0 ? (
           <EmptyState />
         ) : (
-          shields.map((shield) => (
-            <ShieldCard
+          shields.map((shield, index) => (
+            <AnimatedShieldCard
               key={shield.id}
               shield={shield}
+              index={index}
               onToggle={toggleShield}
               onDelete={handleDelete}
               onEmergencyUnlock={handleEmergencyUnlock}
@@ -126,14 +101,12 @@ export default function HomeScreen() {
         <View className="h-8" />
       </ScrollView>
 
-      {/* New Shield Modal */}
       <NewShieldModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onCreateShield={handleCreateShield}
       />
 
-      {/* Emergency Unlock Modal */}
       {unlockTarget && (
         <EmergencyUnlockModal
           visible={!!unlockTarget}
