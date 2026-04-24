@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "focusFlow",
+    "name": "FocusFlow",
     "slug": "focusFlow",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,6 +13,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "bundleIdentifier": "com.simangolwa.FocusFlow",
       "supportsTablet": true
     },
     "android": {
@@ -24,7 +25,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.FocusFlow"
+      "package": "com.simangolwa.FocusFlow"
     },
     "web": {
       "output": "static",
@@ -51,6 +52,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e823cb4e-d814-4f64-a59a-cc9efcc5b02a"
+      }
+    },
+    "owner": "simangolwa"
   }
 }

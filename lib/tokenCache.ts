@@ -26,10 +26,34 @@
 //   },
 // };
 
+// export const tokenCache = {
+//   async getToken(_key: string) {
+//     return null;
+//   },
+//   async saveToken(_key: string, _value: string) {},
+//   async clearToken(_key: string) {},
+// };
+
+import * as SecureStore from "expo-secure-store";
+
 export const tokenCache = {
-  async getToken(_key: string) {
-    return null;
+  async getToken(key: string) {
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch {
+      return null;
+    }
   },
-  async saveToken(_key: string, _value: string) {},
-  async clearToken(_key: string) {},
+
+  async saveToken(key: string, value: string) {
+    try {
+      await SecureStore.setItemAsync(key, value);
+    } catch {}
+  },
+
+  async clearToken(key: string) {
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch {}
+  },
 };
