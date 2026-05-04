@@ -132,21 +132,11 @@
 // }
 
 
-import { Tabs, router } from "expo-router";
+import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "@clerk/clerk-expo";
-import { useEffect } from "react";
 import { Platform } from "react-native";
 
 export default function TabLayout() {
-  const { isSignedIn, isLoaded } = useAuth();
-
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.replace("/(auth)/sign-in");
-    }
-  }, [isLoaded, isSignedIn]);
-
   return (
     <Tabs
       screenOptions={{

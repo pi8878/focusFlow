@@ -11,7 +11,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "focusflow",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "bundleIdentifier": "com.simangolwa.FocusFlow",
       "supportsTablet": true
@@ -47,7 +47,8 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "./plugins/withAndroidPackaging"
     ],
     "experiments": {
       "typedRoutes": true,

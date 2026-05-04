@@ -66,14 +66,29 @@ export default function OnboardingScreen() {
     }
   };
 
+  // const handleGetStarted = async () => {
+  //   await setOnboardingComplete();
+  //   router.replace("/(tabs)");
+  // };
+
+  // const handleSkip = async () => {
+  //   await setOnboardingComplete();
+  //   router.replace("/(tabs)");
+  // };
+
   const handleGetStarted = async () => {
     await setOnboardingComplete();
-    router.replace("/(tabs)");
+    // Small delay to ensure storage write completes before navigation
+    setTimeout(() => {
+      router.replace("/(tabs)");
+    }, 100);
   };
 
   const handleSkip = async () => {
     await setOnboardingComplete();
-    router.replace("/(tabs)");
+    setTimeout(() => {
+      router.replace("/(tabs)");
+    }, 100);
   };
 
   const isLastSlide = activeIndex === SLIDES.length - 1;
